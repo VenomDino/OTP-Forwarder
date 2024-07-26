@@ -7,29 +7,32 @@
     android:layout_height="match_parent"
     android:gravity="center"
     tools:context=".activities.MainActivity"
-    tools:ignore="HardcodedText, Autofill">
+    tools:ignore="HardcodedText,Autofill">
 
     <EditText
         android:id="@+id/tgBotTokenET"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:hint="Telegram Bot token"
         android:layout_margin="10dp"
-        android:inputType="text" />
+        android:hint="Telegram Bot token"
+        android:inputType="text"
+        tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
 
     <EditText
         android:id="@+id/tgGroupIDET"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:hint="Telegram Group ID"
         android:layout_margin="10dp"
-        android:inputType="text" />
+        android:hint="Telegram Group ID"
+        android:inputType="text"
+        tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
 
     <Button
         android:id="@+id/saveBtn"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Save &amp; Continue"
-        android:layout_margin="10dp" />
+        android:text="Save &amp; Exit"
+        android:layout_margin="10dp"
+        tools:ignore="VisualLintButtonSize" />
 
 </LinearLayout>
