@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -20,15 +19,6 @@ import java.util.regex.Pattern;
 public class CustomMethods {
 
     private static final String TAG = "MADARA";
-
-    public static boolean isNumericInteger(String str) {
-        try {
-            Integer.parseInt(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
 
 //    ----------------------------------------------------------------------------------------------
 
@@ -74,22 +64,42 @@ public class CustomMethods {
 
 //    ----------------------------------------------------------------------------------------------
 
+    public static String escapeSpecialCharacters(String input) {
+
+        String escapedInput = input;
+
+        if (input != null) {
+
+            escapedInput = input.replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll("\"", "&quot;")
+                    .replaceAll("'", "&apos;");
+        }
+
+        return escapedInput;
+    }
+//    ----------------------------------------------------------------------------------------------
+
     public static boolean isOTPMessage(String message) {
+
         // Define common OTP patterns or keywords
-        String[] otpKeywords = {"OTP", "code", "verify", "password", "authentication", "secret", "pin"};
+        String[] otpKeywords = {"otp", "code", "verify", "password", "authentication", "secret", "pin"};
+
+        // Convert the message to lower case once
+        String lowerCaseMessage = message.toLowerCase();
 
         // Check if the message contains any of the keywords
         for (String keyword : otpKeywords) {
-            if (message.toLowerCase().contains(keyword.toLowerCase())) {
+            if (lowerCaseMessage.contains(keyword)) {
                 return true;
             }
         }
 
-        // Check for numeric OTP patterns (4 to 8 digits)
-        Pattern pattern = Pattern.compile("\\b\\d{4,8}\\b");
-        Matcher matcher = pattern.matcher(message);
-        return matcher.find();
+        // Check for numeric OTP patterns (4 to 12 digits)
+        return lowerCaseMessage.matches(".*\\b\\d{4,12}\\b.*");
     }
+
 
 //    ----------------------------------------------------------------------------------------------
 

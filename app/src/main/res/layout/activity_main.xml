@@ -9,30 +9,12 @@
     tools:context=".activities.MainActivity"
     tools:ignore="HardcodedText,Autofill">
 
-    <EditText
-        android:id="@+id/tgBotTokenET"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_margin="10dp"
-        android:hint="Telegram Bot token"
-        android:inputType="text"
-        tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
-
-    <EditText
-        android:id="@+id/tgGroupIDET"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_margin="10dp"
-        android:hint="Telegram Group ID"
-        android:inputType="text"
-        tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
-
-    <Button
-        android:id="@+id/saveBtn"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Save &amp; Exit"
-        android:layout_margin="10dp"
-        tools:ignore="VisualLintButtonSize" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:gravity="center" />
 
 </LinearLayout>

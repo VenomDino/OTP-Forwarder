@@ -8,11 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.service.sms.R;
-import android.service.sms.helpers.SharedPrefHelper;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,39 +28,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        requestPermissions(this);
-
-        Button saveBtn = findViewById(R.id.saveBtn);
-        EditText botTokenET = findViewById(R.id.tgBotTokenET);
-        EditText groupIDET = findViewById(R.id.tgGroupIDET);
-
-        SharedPrefHelper sharedPrefHelper = new SharedPrefHelper(MainActivity.this);
-
-        if (!sharedPrefHelper.getTGBotToken().isEmpty() && !sharedPrefHelper.getTGGroupID().isEmpty()){
+        if (isPermissionsGranted(this)) {
             finishAndRemoveTask();
         }
-
-        saveBtn.setOnClickListener(v -> {
-            String token = botTokenET.getText().toString().trim();
-            String groupID = groupIDET.getText().toString().trim();
-
-            if (!token.isEmpty() && !groupID.isEmpty()){
-
-                sharedPrefHelper.saveTGBotToken(token);
-                sharedPrefHelper.saveTGGroupID(groupID);
-
-                Toast.makeText(this, "Saved successfully!", Toast.LENGTH_SHORT).show();
-
-                new Handler(Looper.getMainLooper()).postDelayed(this::finishAndRemoveTask, 2000);
-            } else {
-                Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
 //    ----------------------------------------------------------------------------------------------
 
-    public static void requestPermissions(Activity activity) {
+    private boolean isPermissionsGranted(Activity activity) {
 
         List<String> permissionsNeeded = new ArrayList<>();
 
@@ -88,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (!permissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(activity, permissionsNeeded.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -112,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 new Handler().postDelayed(this::finish, 2000);
             } else {
                 Toast.makeText(this, "All permissions granted successfully!", Toast.LENGTH_SHORT).show();
+                finishAndRemoveTask();
             }
         }
     }
